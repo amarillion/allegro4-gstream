@@ -1,0 +1,4 @@
+// forwarding header for gstream
+
+#include "gstream.h"
+

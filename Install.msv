@@ -1,0 +1,40 @@
+MSVC 6 install instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1) Set up your environment so that MSVC can be used from the commandline.
+   You probably have a vcvars32.bat file that will do this for you.
+   As you probably installed Allegro you should know what I mean :-).
+   (Actually the first two sentences were directly copied from Allegro
+    documentation :-) )
+
+2) To be able to make the documentation you should now copy the
+   makedoc utility from Allegro (located in allegro/docs) to this
+   directory
+
+3) run makevc.bat
+   it should generate the library (gstream.lib) and compile
+   the test.cc (testwin.exe) and install the library and header files
+
+4) run testwin.exe to make sure that everything is ok
+
+5) that's all
+
+And that is it! You are now ready to use the gstream library. Simply
+
+  #include <gstream> // or #include <gstream.h> if you prefer that
+
+and maybe
+
+  #include <gmanip>  // if you want to use the manipulators (see gstream.txt)
+
+in your source files and link with "gstream.lib".
+
+If you are using IDE go to Project\Settings\Link tab and
+to "Object/library modules" box add "gstream.lib" (Don't forget to
+link also with Allegro).
+If you're using the commandline compiler, append "gstream.lib" at the end of the
+line, e.g.
+
+    cl /GX /GR myprog.cpp /link alleg.lib gstream.lib
+
+(GX enables exception handling and GR enables RTTI)

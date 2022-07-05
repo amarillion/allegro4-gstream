@@ -1,0 +1,68 @@
+      _________ ___            d            a         w          u
+    / p     n  |   \      5   >>    9       >>  q       <<   g       h
+  /  q   o_____m  l |    g <<   _         b          8    e     l
+ |  r  /       |    |   ____ __| |__ _  __   ___  ____  _  _   __
+ | s  |        | k  | /  __ /__   __| |/_ \ / _ \/__  || |/ \_/  \     6
+ |   t \ ______|   j| \_  \    | |  |  / \_>  __/ __| ||  /\   /\ |
+  \    u        y   |   _\  \  | |_ | |    | |__ / _| || |  | | | |  m <<
+    \______v___x i z| /____ /   \_/ |_|     \___>\____||_|  |_| |_|
+  ___          |    |                    v
+ | a  \______ /  h  |                            h      y        3    v
+  \  b     d  f    /    v. 1.6        c   <<       t         b
+    \ __c_______g/                       1            >>            a
+
+
+Introduction
+~~~~~~~~~~~~
+Welcome to gstream!
+
+Gstream is a C++ add-on library for Allegro. Its main purpose is to 
+provide a simplified syntax for Allegro's keyboard and text functions
+for input and output, so that you can treat a graphical mode as a
+console, but there is more! 
+
+Install the package by following the instructions below and read the
+introduction in the documentation afterwards if you want a more
+detailed description.
+
+If you come from a previous version of gstream, don't miss the file
+"NEWS" for information about changes.
+
+
+Requirements
+~~~~~~~~~~~~
+To use gstream you need Allegro, so gstream has the same requirements as
+Allegro + that you (for some weird, obscure reason ;-) need a C++ compiler.
+The compiler should be a fairly standard conforming one as the library in 
+some places uses new C++ syntax (e.g. static_cast<>(), reinterpret_cast<>()).
+Library was test with GCC 3 (DJGPP, MingW32, Linux) and MSVC 6.
+
+Note that you need at least a 3.9.* version of Allegro (one of the
+work-in-progress series) since gstream is using some Unicode-aware
+features. Tested with version 4.1.9.
+
+
+Installation
+~~~~~~~~~~~~
+Installation procedure depends on your platform and compiler. Each platform
+has separate file with install instructions:
+
+DJGPP     Install.dj
+Un*x      Install.unx
+MingW32   Install.m32
+MSVC      Install.msv
+
+If your platform/compiler is not listed in the table, use this generic
+install instructions:
+1) create library from *.cc files in this directory
+2) copy the library to your library directory
+3) copy header files (gmanip.h, gmanip., gstream.h, gstream.)
+   to your include directory
+4) compile test.cc, link it with gstream library and allegro library
+5) that's all
+
+Documentation
+~~~~~~~~~~~~~
+During the installation, the documentation is generated in several formats.
+You can also manually run Allegro makedoc utility on gstream._tx file.
+You can find there API reference, contact and licence information etc.

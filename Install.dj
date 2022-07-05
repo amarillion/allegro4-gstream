@@ -1,0 +1,72 @@
+DJGPP install instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+But if DJGPP is your environment of choice, all you have to do is this:
+
+  1. Turn on your computer and wait until your OS has finished
+     its loading session...
+  2. Create a subdirectory somewhere you know you won't forget.
+     Here, I might have suggested that you placed it in
+     "allegro/addons/" (because that isn't an unusual place to
+     place add-ons for allegro) and called it "gstream" (because
+     that is the name of the library), but as it really is your
+     decision, I won't
+  3. Unzip the package into the subdirectory. It is not necessary
+     to preserve any directory structure or long filenames because
+     there aren't any
+  4. To be able to make the documentation you should now copy the
+     makedoc utility from Allegro (located in allegro/docs) to this
+     subdirectory
+  5. Enter the subdirectory
+  6. Now it would be a good idea to simply type "fixdjgpp" (without
+     the quotation marks, and with an enter-press at end)
+  7. Now type "make". Sit back and enjoy life for a while and let your
+     computer compile the library (you can't help it with that anyway)
+  8. Type "make install" to install the library and the include
+     files into the standard directories
+  9. And you'll have to make one more decision: if you want the
+     documentation in the info-format (the one that is also used
+     by RHIDE and Emacs) to be installed, type "make install-info"
+ 10. Now you're are ready for a small demonstration of the
+     superior capabilities of this library. Type "test"
+ 11. Pick up your lower jaw, crank up your favourite emailer
+     and send me a brief summary of all the good things you
+     can think of about the library
+
+And that is it! You are now ready to use the gstream library. Simply
+
+  #include <gstream> // or #include <gstream.h> if you prefer that
+
+and maybe
+
+  #include <gmanip>  // if you want to use the manipulators (see gstream.txt)
+
+in your source files and link with "libgstrm.a":
+
+If you're using RHIDE, go to the Options/Libraries menu, type "gstrm" into
+an empty space, and make sure the check-box next to it is checked. If
+you're using the commandline compiler, append "-lgstrm" at the end of the
+line, e.g. (DOS example)
+
+  gxx myprog.cc -o myprog.exe -lalleg -lgstrm
+
+If you want the context sensitive help in RHIDE (the one that is invoked
+with Ctrl-F1) to search gstream's help file too, enter "gstream" in
+"Help->Syntax help->Files to search" dialog box.
+
+The makefile supports some of the targets that Allegro supports: clean,
+distclean and uninstall. These three requires the program rm from the GNU
+fileutils package. "clean" deletes all object-files, "distclean" deletes
+all generated files (you're back from where you started when you unzipped
+the package) and "uninstall" removes the header files and the library
+file from the standard directories.
+
+So in case you want to uninstall this package (for which obscure reason
+I cannot guess), simply run
+
+  make uninstall
+
+and remove the directory that you installed gstream to.
+
+
+Enjoy!

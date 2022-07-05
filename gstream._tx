@@ -1,0 +1,1218 @@
+@# If you want to split the large html-file into sections, uncomment
+@# the next multiplefiles statement by removing the '#' in front of it
+@#
+@#multiplefiles
+@#
+@html_footer=Back to Contents
+@rtfh=gstream - a C++ add-on library for Allegro
+@manh="version 1.6" "gstream" "gstream manual"
+@mans=#include <gstream.h>
+@document_title=gstream - simplified stream output/input for Allegro
+@$\input texinfo
+@$@setfilename gstream.inf
+@$@settitle gstream manual
+@$@setchapternewpage odd
+@$@paragraphindent 0
+@$
+@$@ifinfo
+@$@direntry
+@$* gstream: (gstream). Simplified stream output/input for Allegro.
+@$@end direntry
+@$This is the Info version of the gstream manual
+@$
+@$By Ole Laursen
+@$@end ifinfo
+@$
+@$@node Top, , (dir), (dir)
+@<html>
+@<pre>
+@!indent
+     _________ ___            d            a         w          u
+   / p     n  |   \      5   &gt&gt    9       &gt&gt  q       &lt&lt   g       h
+ /  q   o_____m  l |    g &lt&lt   _         b          8    e     l
+|  r  /       |    |   ____ __| |__ _  __   ___  ____  _  _   __
+| s  |        | k  | /  __ /__   __| |/_ \ / _ \/__  || |/ \_/  \     6
+|   t \ ______|   j| \_  \    | |  |  / \_&gt  __/ __| ||  /\   /\ |
+ \    u        y   |   _\  \  | |_ | |    | |__ / _| || |  | | | |  m &lt&lt
+   \______v___x i z| /____ /   \_/ |_|     \___&gt\____||_|  |_| |_|
+ ___          |    |                    v
+| a  \______ /  h  |                             h      y        3    v
+ \  b     d  f    /    v. 1.6        c   &lt&lt       t         b
+   \ __c_______g/                       1            &gt&gt            a
+
+
+  Simplified stream output/input for Allegro
+
+  By Ole Laursen
+
+@indent
+@</pre>
+
+
+
+See the README for information about how to install gstream and link your
+program with it. The file NEWS contains a list of changes.
+
+
+@!text
+@heading
+Contents
+
+@contents
+
+@text
+@heading
+Introduction
+
+Welcome to gstream!
+
+gstream is a C++ add-on library for Allegro. Its main purpose is to 
+provide a simplified syntax for Allegro's keyboard and text functions
+for input and output, so that you can treat a graphical mode as a
+console, but there is more! 
+
+Among the most interesting features are:
+@tallbullets
+<ul><li>
+remembering of the (x,y)-coordinates from the previous write/read!
+<li>
+support for newlines and tabulators
+<li>
+tab stops (useful for tables, eg. high score tables)
+<li>
+...which are capable of changing the colour and the font on the fly
+<li>
+support for line spacing
+<li>
+having a default editable string when inputting
+<li>
+a very flexible cursor drawing system for easy customization
+<li>
+providing custom functions for handling user mistakes and for deciding
+whether a newly inputted character is accepted
+</ul>
+
+Gstream is derived from the standard input/output stream classes and does
+consequently allow the well-known syntax from normal console putting, e.g.:
+<pre>
+  gs &lt&lt "Hi there! Isn't this easy?\n";
+  int a;
+  gs &gt&gt a;
+  gs &lt&lt " a is " &lt&lt a;
+</pre>
+Or if you don't like the &lt&lt and the &gt&gt operators:
+<pre>
+  gs.form("Hi there! This is easy, too.\n");
+  gs.form("The function outputs using the printf-style format strings,\n"
+          "for example, a is %d", a);
+</pre>
+This is the basic idea behind gstream - to provide a very simple syntax for
+your outputting and inputting.
+
+And it is really a relief when debugging because one doesn't have to
+think so much about where to send the debug information. You just
+blast it to the nearest gstream, like
+<pre>
+  gs &lt&lt "AAAARGH, THE COMPUTER WILL BLOW UP IN 5 SECONDS BECAUSE a = " &lt&lt a;
+</pre>
+
+
+@heading
+Using gstream
+
+As stated in the introduction, the purpose of this library is to provide a
+simple syntax for in- and outputting. This is accomplished by deriving
+the gstream-class system from the standard stream classes, which means that
+all the functions that you (may) have written for the ostream/istream/ios
+classes will work with gstreams. It also means that everything you can do
+with the standard streams, e.g. formatting of floats, is also available with
+the gstreams. 
+
+As a consequence of this I haven't documented all of the functionality of 
+the gstreams, only those parts which aren't shared with the standard streams.
+This means, for instance, that I don't write examples with the 'form' member
+function which can be used instead of (or as a supplement to) the &lt&lt 
+operator - if you prefer the printf-style you should seek information about
+it elsewhere from (e.g. the iostream description in the online help or a C++
+book).
+
+
+But let us start with the beginning of everything: the constructor. Its
+declaration looks like this
+<pre>
+  gstream(BITMAP *bmp = screen);
+</pre>
+So to create a new gstream we pass the constructor a pointer to the BITMAP
+that we want the stream to draw to, e.g.
+<pre>
+  BITMAP *screen_buffer = create_bitmap(640, 480);
+  gstream my_stream(screen_buffer), screen_strm;
+</pre>
+Here the second gstream, screen_strm, is initialized to draw to the screen
+by default. By the way, always remember to #include &ltgstream&gt before you try
+to use any of the gstream-functions or else Bad Things will happen (mmwhoah,
+hah, ha, ha, haaaaa...) such as the compiler giving you strange errors.
+
+Now that we have learned how to create the stream, let us see how it is used.
+A typical and very common example is
+<pre>
+  #include &ltgstream&gt     // note: you can use &ltgstream.h&gt if you prefer
+
+  int main()
+  {
+   allegro_init();       // you have to initialise Allegro and in be in a
+   if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) &lt 0) // graphical mode
+     return 1;
+
+   gstream gs;           // construct gs, which will draw on the screen
+
+   gs &lt&lt "Hello world!"; // print string with default settings
+
+   gs &lt&lt flush;          // gstreams are buffered so remember to flush
+
+   return 0;
+  }
+</pre>
+which will print the string "Hello world!" on the screen in the upper left
+corner. Of course you won't be able to see the string because the program will
+quickly terminate and return to the OS, but it should show you the basics: 'gs'
+works exactly like the standard 'cout'. Let us see an example of inputting:
+<pre>
+  #include &ltgstream&gt
+
+  int main()
+  {
+   allegro_init();
+   if (set_gfx_mode(GFX_AUTODETECT, 320, 200, 0, 0) &lt 0)
+     return 1;
+
+   install_keyboard();   // when you use the inputter, you also have to
+                         // initialise the keyboard
+
+   gstream gs;           // once again construct gs
+
+   gs &lt&lt "Try inputting a number: ";
+
+   int number;           // define a number
+   gs &gt&gt number;         // get it
+
+   gs &lt&lt "\nYou wrote the number: " &lt&lt number; // print it
+
+   gs &lt&lt flush;          // remember to flush
+
+   readkey();            // wait for a key to be pressed
+
+   return 0;
+  }
+</pre>
+And we notice that the gstream 'gs' also works like 'cin'. This is
+because a gstream serves both as an input and output stream. Now let's
+see what we have gathered of information:
+<ul><li>
+inserting into and extracting from a gstream is done in the same way
+as with the standard stream system, for example using &lt&lt and &gt&gt
+<li>
+before you do any extractions or insertions, you should make sure
+that allegro_init and set_gfx_mode are called
+<li>
+before you do any extractions you should also make sure that the
+keyboard handler is installed with install_keyboard
+<li>
+a gstream is like an iostream in the way that it is capable of
+both insertion and extraction
+<li>
+gstreams are buffered so in some situations they have to be flushed
+before anything will actually show up (like 'cout')
+</ul>
+
+If you have understood that getting and putting from and to a gstream
+is exactly like getting and putting from and to the standard streams,
+then you know how to use this library. The rest of it is just a bunch
+of routines to control the outputting and inputting and to make life a
+bit easier...
+
+
+@heading
+Cursor positioning functions
+
+The term "cursor" should in this connection be thought of as the place
+where the next (if any) character will be drawn, and it exists simply as
+an invisible, imaginary point. When we talk about the "cursor" in
+connection with inputting, it is often manifested with for instance a
+vertical line that shows us where the next character will be inserted,
+but when generally speaking of the cursor and its position, it is just a
+point without any graphical representation.
+
+The cursor is initialised to (0,0).
+
+All the goto functions are also available as move_* in which case they
+move the cursor relative to the current position, e.g. if cursor
+position is (12, 40), then after move_xy(50,-10) it is (62, 30).
+
+@@void @goto_xy(int x, int y);
+@xref goto_x, goto_y, move_xy
+   Moves the cursor to the specified x- and y-coordinates.
+
+@@void @goto_x(int x);
+@xref goto_xy, goto_y, move_x
+   Moves the cursor to the given x-coordinate.
+
+@@void @goto_y(int y);
+@xref goto_xy, goto_x, move_y
+   Moves the cursor to the given y-coordinate.
+
+@@void @goto_row(int row);
+@xref move_row, goto_xy
+   Moves the cursor to line number ROW. If, for instance, the currently
+   used font has a height of 12, then goto_row(4) is exactly the same
+   as goto_y(4*12). Unless, of course, you use another line spacing
+   than the default as the formula is
+<pre>
+     y-coordinate = line_spacing * row
+</pre>
+
+@@void @move_xy(int x, int y);
+@xref goto_xy
+   Moves cursor relative to the current position by (X,Y).
+
+@@void @move_x(int x);
+@xref goto_x
+   Moves cursor relative to the current position by X.
+
+@@void @move_y(int x);
+@xref goto_y
+   Moves cursor relative to the current position by Y.
+
+@@void @move_row(int row);
+@xref goto_row
+   Moves cursor relative to the current position by ROW.
+
+
+@heading
+Output formatting functions
+
+This group of functions determines how the gstream will draw the data.
+
+@@void @set_bitmap(BITMAP *bmp);
+@xref get_bitmap
+   Sets the bitmap that the stream will draw characters on. This may
+   also be done while constructing the stream (see the introduction).
+
+@@void @set_font(FONT *the_font);
+@xref get_font
+   Sets the font that the stream will draw the characters with. The
+   default is the font 'font'.
+
+@@void @set_color(int clr);
+@xref get_color
+   Sets the colour to draw the font with. For a detailed discussion of
+   this see the documentation for Allegro (under textout) - the
+   gstream will pass this colour variable directly to the string
+   drawing function so the same rules as for normal textouts apply to
+   it. The default is -1.
+
+@@void @set_tab_size(int ts);
+@xref get_tab_size
+   Sets the standard-tabulator size. The default size is 8.
+
+@@void @set_margin(int m);
+@xref get_margin
+   Sets the margin at the left side of the bitmap. Every time you
+   launch a newline, the cursor will return to this x-position. Default
+   is 0.
+
+@@void @set_line_spacing(int ls);
+@xref get_line_spacing
+   Sets the line spacing in pixels. The supplied value is added to the
+   height of the font so if your font is 12 pixels high, and you call
+   this function with 4, then the outputter will go 16 pixels down each
+   time a newline is encountered, effectively making the space between
+   the lines be 4 pixels. Note that nothing prevents you from supplying
+   a negative value which, for instance, could cause the lines to
+   overlap.
+ 
+   Every time you select a new font, the gstream will call this
+   function with 1.
+
+@@void @set_wrap(bool w);
+   If set to true, the outputter will launch a newline if the text is
+   too wide to fit the line. The text will be wrapped at the spaces
+   between the words.
+
+   If a single word is too wide, it'll simply be outputted with a
+   newline before and after it, which means that it will get a line of
+   its own and probably be truncated by Allegro's clipping mechanism.
+
+   The inputter doesn't wrap the lines, only the outputter. The default
+   value is false.
+
+
+@heading
+Input tuning functions
+
+These functions are only interesting if you need to get data from the
+gstream, they provide more control over the inputter.
+
+@@void @set_input_string(char const *s);
+   This function provides a way to specify an editable default string 
+   when inputting. Consider the following example:
+<pre>
+     char buf[100];
+     gs &lt&lt "What's your opinion about gstream?\n";
+ 
+     gs.set_input_string("I think it is incredible wonderful!");
+     gs.getline(buf, 100);
+</pre>
+   The user will see the following
+<pre>
+     What's your opinion about gstream?
+     I think it is incredible wonderful!|
+</pre>
+   where the '|' represents the cursor, and (s)he can edit the string, 
+   for example
+<pre>
+     What's your opinion about gstream?
+     I think it is superior, fantastic and| wonderful!
+</pre>
+   resulting in 'buf' containing the string "I think it is superior,
+   fantastic and wonderful!"
+ 
+@@void @set_insert_mode(bool im);
+@xref get_insert_mode
+   If invoked with true, the edit mode is set to insert (entering a
+   character in the middle of a string will insert it, and not overwrite the
+   next character). If invoked with false, the edit mode is overwrite. Note that
+   the user is capable of changing this state by pressing the insert key, and
+   that this change will be saved for the next inputs to the stream. The
+   default value is true.
+ 
+@@void @set_max_input_length(int)
+@xref set_input_string
+   This sets the maximum number of characters that the inputter will
+   accept from the user at the next, and only the next, input, i.e.
+   if you call this function with 5
+<pre>
+     set_max_input_length(5);
+</pre>
+   and the user has made the following input
+<pre>
+     abcde|
+</pre>
+   he won't be able to enter anymore characters before at least one
+   of them has been deleted. If the three middle characters are deleted
+<pre>
+     a|e
+</pre>
+   then it is possible to enter three new characters wherever the user
+   want. For example
+<pre>
+     1a2e3|
+</pre>
+   Note that it is possible to set a default string which is longer
+   than this supplied value; in that case the user will have to delete
+   some characters if he wants to enter any himself.
+ 
+   Also note that this function only affects the next input, not the
+   inputs after that.
+
+@@void @set_cursor_drawer(void (*cd)(BITMAP *, int, int, int, int, int, bool));
+@xref set_cursor_dimensions, get_cursor_drawer, cd_winconsole
+   This will set the function for drawing the cursor, which is useful
+   if you want to customize it with your own favourite cursor (perhaps
+   a BITMAP). Before you can actually use the cursor for inputting, you
+   also have to call set_cursor_dimensions with the width and height of
+   your cursor, in both insert and overwrite mode.
+
+   The parameters of the drawer function are: destination bitmap (the
+   BITMAP you draw on); x-coordinate; y-coordinate; the width (if you
+   passed gbuf::DYNAMIC_CURSOR_SIZE it is the width of the character
+   under the cursor, else it is the width you specified); the height
+   (ditto); the colour of the font (watch out for a -1!); whether in
+   insert mode (true if so).
+
+   A simple example of a standard console cursor:
+<pre>
+     void cd_cons(BITMAP *bmp, int x, int y, int w, int h, int c, bool ins)
+     {
+       int colour;
+ 
+       // determine colour (defaults to black if no colour specified)
+       if (c == -1)
+         colour = makecol_depth(bitmap_color_depth(bmp), 0, 0, 0);
+       else
+         colour = c;
+ 
+       if (ins)  // if it is the insert cursor
+         rectfill(bmp, x, y + h - 2, x + w - 1, y + h - 1, colour);
+       else      // else overwrite cursor
+         rectfill(bmp, x, y, x + w - 1, y + h - 1, colour);
+     }
+</pre>
+   You don't have to think about flashing the cursor or other
+   pecularities - the gstream will take care of that, all you have to
+   do is to construct a function that draws something on the specified
+   BITMAP, at the specified position, not exceeding the specified width
+   and height. You are of course free to ignore the color and the
+   insert parameter, just make sure that you don't draw outside the
+   given rectangle, or else the gstream can't recover the background
+   and the result will be artifacts.
+
+   A typedef, 'cursor_drawer', in 'gbuf' makes it easy to declare
+   pointers to this type of functions:
+<pre>
+     gbuf::cursor_drawer tmp_cd;
+
+     //...
+
+     tmp_cd = gs1.get_cursor_drawer();
+     gs1.set_cursor_drawer(gs2.get_cursor_drawer());
+     gs2.set_cursor_drawer(tmp_cd);
+</pre>
+   The default cursor drawer is 'cd_winconsole'.
+
+@@void @set_cursor_dimensions(int iw, int ih, int ow, int oh);
+@xref get_cursor_w, get_cursor_h, set_cursor_drawer
+   This will set the cursor dimensions to IW x IH when in insert mode
+   and OW x OH when in overwrite mode. Although the standard cursors
+   respond to this, it is mostly intended to be used with custom cursor
+   drawers.
+
+   Before requesting any inputs with your custom cursor drawer, you
+   should call this function with the appropriate values. To set the
+   size of the character underneath the cursor dynamically, pass
+   gbuf::DYNAMIC_CURSOR_SIZE: if the cursor is at the end of the line,
+   it will get the width of a space ' ', else it will get the size of
+   the character under it.
+
+   Say that we have created a nice cursor drawer that for the insert
+   cursor is one pixel wide and as tall as the characters (in other
+   words: a vertical line), but for the overwrite cursor is a BITMAP
+   with the dimensions 8x10. Then the following would do:
+<pre>
+     gs.set_cursor_dimensions(1, gbuf::DYNAMIC_CURSOR_SIZE, 8, 10);
+</pre>
+   It is important that you remember to call this function when you
+   are using custom cursor drawers - else the inputter doesn't know
+   how much of the background below the cursor to save and recover.
+
+   The default dimensions are the dimensions that are suited for the
+   default cursor.
+
+@@void @set_input_approver(bool (*input_approver)(int));
+@xref save_input_approver, restore_input_approver, get_input_approver
+@xref set_input_string, ia_allow_everything
+   The function handed over will be called with every new character
+   inputted and determines whether the character will be accepted by
+   the inputter. If it returns true, the character is accepted and
+   inserted in the input string, if false, the character is thrown
+   away.
+
+   A short example:
+<pre>
+     bool ia_abc_is_what_we_want(int chr)
+     {
+       if (chr == 'a' || chr == 'b' || chr == 'c')
+         return true;
+       else
+         return false;
+     }
+
+     //...
+
+     gs.set_input_approver(ia_abc_is_what_we_want);
+     gs &gt&gt my_string; // the user is only able to input a, b or c
+</pre>
+   If you want to declare any variables of the type of the function,
+   the typedef 'input_approver' in 'gbuf' makes it easy, e.g.
+<pre>
+     gbuf::input_approver tmp_ap;
+
+     //...
+
+     tmp_ap = gs1.get_input_approver();
+     gs1.set_input_approver(gs2.get_input_approver());
+     gs2.set_input_approver(tmp_ap);
+</pre>
+   Note that a default input string as entered by set_input_string
+   is not checked by this function. The default approver is
+   'ia_allow_everything'.
+
+@@void @save_input_approver();
+@xref restore_input_approver, set_input_approver, get_input_approver
+   A typical use of the input approver system is to temporarily set a
+   home-made approver, launch an input and then get the original
+   settings back. Consequently there is a pair of functions to help
+   you with that, save_input_approver and restore_input_approver.
+
+   Saving will backup the currently used approver, so you can
+   continue using it.
+<pre>
+     gs.save_input_approver();
+     gs &gt&gt my_string;           // uses still default approver
+     gs.set_input_approver(ia_my_own);
+     gs &gt&gt my_string;           // uses ia_my_own approver
+     gs.restore_input_approver();
+     gs &gt&gt my_string;           // uses default approver again
+</pre>
+
+
+@@void @restore_input_approver();
+@xref save_input_approver, set_input_approver, get_input_approver
+   Restores the previously saved backup. You can call this function
+   as many times as you want, i.e. the backup will remain the same
+   until you save another approver.
+
+@@void @set_cursor_blink(int cb);
+   Sets the number of cursor blinks per minute - the cursor will be
+   turned on around CB times a minute, passing 60 would make the cursor
+   turn on approximately once per second, for instance. If you pass
+   null, cursor flashing will be turned completely off.
+
+   Typical good values range from 50-80, but that is a matter of taste,
+   of course.
+
+   Note that cursor blinking requires the timers to be installed as it
+   uses a timer interrupt for timing the blinks. Default is off (0).
+
+@@void @set_input_error_handler(int error);
+@xref get_input_error_handler, set_input_approver, set_max_input_length
+@xref ieh_never_complain
+   Sets an error handler that will be called of the inputter encounter
+   any unusual, erratic behaviour, e.g. the user trying to move the
+   cursor off the string or pressing invalid keys. The handler is
+   passed a constant which currently can be one of the following:
+<ul><li>
+   IE_UNRECOGNIZED_KEY<br>
+      The inputted key couldn't be used for anything, i.e. it wasn't
+      one of the recognized control keys (for example KEY_LEFT, but not
+      KEY_PGDN) and the input approver didn't accept it as a valid char
+      either.
+<li>
+   IE_CURSOR_EXCEEDING_LIMITS<br>
+      The user tried to move the cursor off the input string, e.g. if
+      the cursor is at the beginning of the string and the user presses
+      KEY_LEFT or KEY_HOME. Note that pressing KEY_UP and KEY_DOWN
+      currently returns IE_CURSOR_EXCEEDING_LIMITS, no matter where the
+      cursor is.
+<li>
+   IE_NO_ROOM_FOR_CHAR<br>
+      There was no room for the inputted char. This often occurs if the
+      length of the input string has been limited to a certain maximum
+      with set_max_input_length, but may also happen if the buffer that
+      the inputter puts the data in is full. The latter is not likely
+      to happen unless you, for instance, force the gstream to use
+      your own buffer, as the standard buffer is rather large.
+</ul>
+   Note that these constants are defined in 'gbuf' so you have to put
+   'gbuf' and the scope operator in front of them:
+<pre>
+     int stupid_mistakes = 0;
+
+     void ieh_for_my_number_inputter(int e)
+     {
+       switch (e) {
+         case gbuf::IE_UNRECOGNIZED_KEY:  // note: gbuf::
+              if (stupid_mistakes > MUST_BE_BRAIN_DEAD) {
+                say_to_user("Sorry, you can only input numbers!");
+                user_characteristics = FOOL;
+                stupid_mistakes = 0;
+              }
+              else
+                ++stupid_mistakes;
+              break;
+         case gbuf::IE_NO_ROOM_FOR_CHAR:
+              play_quiet_beep();
+              break;
+        } // in all other situations: do nothing
+     }
+</pre>
+   You should be aware that the inputter automatically will take care
+   of any problems encountered and solve them with much elegance (often
+   simply by ignoring the user if the result of the action would be
+   illegal), so your error handler doesn't really deal with the problem
+   or handle the situation - it is merely a way for you to warn or tell
+   the user that he is doing something wrong.
+
+   Some advices concerning the style is given here - of course, you
+   don't have to follow them, you are free to have you own opinion
+   and the advices are general so they might not fit your particular
+   situation, but please at least read them through before you begin
+   designing your own error handler:
+@tallbullets
+<ul><li>
+   Often the best thing to do is not to do anything. For example,
+   simply ignoring that the user is pressing an unrecognized key
+   is often better than complaining, unless you have a specific
+   reason for warning him - in the example above the user should be
+   aware that he was supposed to enter a number
+<li>
+   If you decide to do something, remember the KISS principle: keep
+   it simple. If you as a user have made a mistake, you're probably
+   already irritated because of that and then it doesn't help the
+   situation that you have to watch the screen go beserk (or hear
+   an entire symphony) before you can continue
+@tallbullets
+<ul><li>
+      If you play a sound, such as a beep, make it a short, quiet one.
+      Personally I can't stand a hysterical "BEEEEEEEEEP" if I
+      accidentally hit the wrong key
+<li>
+      Generally don't use large special effects. If you have invented
+      a new kind of plasma generator, you're probably better off
+      releasing a demo that shows it, instead of making your users
+      annoyed by forcing them to look at it everytime they make the
+      slightest fault
+<li>
+      If you display a message, consider implementing a system like in
+      the example above where the user is given a few tries before the
+      message is displayed, to ensure it is only (or mostly) sent to
+      newbies. If the example should be perfect, it would even reset
+      the mistake counter now and then
+</ul>
+<li>
+   At last a practical advice: keep in mind that future versions of
+   gstream may have more error codes added, so design the function
+   in a way that it won't break as soon as that happens (e.g. don't
+   count on that if you test for the first constants, then the
+   remaining has to be the last)
+</ul>
+   There is a typedef, 'input_error_handler', in 'gbuf' for the type
+   of a pointer to a handler function:
+<pre>
+     gbuf::input_error_handler tmp_ieh;
+
+     //...
+
+     tmp_ieh = gs1.get_input_error_handler();
+     gs1.set_input_error_handler(gs2.get_input_error_handler());
+     gs2.set_input_error_handler(tmp_ieh);
+</pre>
+   The default input error handler is 'ieh_never_complain'.
+
+@heading
+Smart-tabulator functions
+
+The gstreams support tabulator stops which can be a bit "smarter" than
+usual as they are capable of changing the font and/or the colour of the
+font on the fly.
+
+Credits go to George Foot for this idea.
+
+@@void @set_tab(int x, int color, FONT fnt);
+@xref remove_tab, remove_all_tabs, restore
+   This is the basic function - it creates a tab stop at the specified
+   x-coordinate with the specified colour and the specified font. But
+   the function is overloaded so it is possible only to set a tab
+   stop without changing the font or the font colour, or just changing
+   the colour or just changing the font: set_tab(int x),
+   set_tab(int x, int color) and set_tab(int x, FONT fnt) respectively.
+
+   A few examples are granted:
+<pre>
+     set_tab(130);
+     // set a tab stop at the x-position 130, don't change colour or font
+ 
+     set_tab(400);
+     // set a tab stop at 400, don't change colour or font
+ 
+     set_tab(80, 24);
+     // set a stop at 80 and let it change the colour to 24, no font change
+ 
+     set_tab(190, 57, my_arial_font);
+     // set tab stop at 190, change colour to 57 and font to 'my_arial_font'
+ 
+     set_tab(250, courier);
+     // set tab stop at 250, don't change colour, but change font to 'courier'
+</pre>
+
+   The first version of gstream didn't have these overloaded functions,
+   but used a more clumsy syntax (involving a constant) which is now
+   deprecated.
+
+@@void @remove_tab(int x);
+@xref set_tab, remove_all_tabs, restore
+   This will remove the tabulator stop (if it exists) at position X.
+ 
+@@void @remove_all_tabs();
+@xref set_tab, remove_tab, restore
+   Removes all tabulator stops. It is useful for cleaning up.
+ 
+@@void @restore();
+@xref set_tab, remove_tab, remove_all_tabs
+   When you have activated a tabulator stop (by using the '\t'
+   character), it might change the colour or the font depending on
+   what or what not you have told it to do. To get the original
+   settings back you can call this function.
+
+   It is automatically called when a newline ('\n') is encountered,
+   and in a few other situations.
+
+
+@heading
+Getting functions
+
+These functions return various of the gstream variables. Most of them speak
+pretty much for themselves, I think.
+
+@@BITMAP *@get_bitmap();
+@xref set_bitmap
+   Returns the currently used bitmap.
+
+@@FONT *@get_font();
+@xref set_font
+   Returns the currently used font.
+
+@@int @get_x();
+@xref goto_x
+   Returns the cursor's x position.
+
+@@int @get_y();
+@xref goto_y
+   Returns the cursor's y position.
+
+@@int @get_color();
+@xref set_color
+   Returns the currently used colour.
+
+@@int @get_margin();
+@xref set_margin
+   Returns the margin setting.
+
+@@int @get_tab_size();
+@xref set_tab_size
+   Returns the tabulator size.
+
+@@int @get_line_spacing();
+@xref set_line_spacing
+   Returns the current line spacing.
+
+@@bool @get_insert_mode();
+@xref set_insert_mode
+   True if pressing a key makes the inputter insert the character. False
+   if the inputter overwrites the next character with the new character.
+
+@@gbuf::cursor_drawer @get_cursor_drawer();
+@xref set_cursor_drawer
+   Returns the currently used cursor drawer.
+
+@@int @get_cursor_w();
+@xref get_cursor_h, set_cursor_dimensions
+   Returns the input cursor width in the current insert-mode, i.e. if
+   the gstream is in insert mode when this function is called, it will
+   return the cursor's insert width, and if in overwrite mode it will
+   return the cursor's overwrite width.
+
+@@int @get_cursor_h();
+@xref get_cursor_w, set_cursor_dimensions
+   Returns the input cursor height in the current insert mode, i.e. if
+   the gstream is in insert mode when this function is called, it will
+   return the cursor's insert height, and if in overwrite mode it will
+   return the cursor's overwrite height.
+
+@@gbuf::input_approver @get_input_approver();
+@xref set_input_approver, save_input_approver, restore_input_approver
+   Returns the currently used input approver.
+
+@@gbuf::input_error_handler @get_input_error_handler();
+@xref set_input_error_handler
+   Returns the input error handler.
+
+@@gbuf::dirty_rectangle_marker @get_dirty_rectangle_marker();
+@xref set_dirty_rectangle_marker
+   Returns the currently used dirty rectangle marker.
+
+@heading
+Miscellaneous functions
+
+This group of functions all only have one thing in common: that they don't have
+anything in common.
+
+@@void @set_dirty_rectangle_marker(void (*drm)(int, int, int, int))
+@xref get_dirty_rectangle_marker
+   Sets a function which the gstream will use to mark the areas that it
+   draws inside as "dirty"; this can, for instance, be very useful in
+   conjuction with a dirty rectangle system in a game where you are
+   using the gstream to output various information during the main
+   loop. The gstream will then automatically be able to inform the
+   system about the parts of the bitmap it has changed so that you don't
+   have to take up that responsibility.
+
+   The provided function will be given the parameters: x and y
+   coordinates, and width and height of the rectangle, in that order. So
+   if you're using DRS, you could call this function like this (since
+   that function takes these four parameters x, y, width, height
+   directly):
+<pre>
+     set_dirty_rectangle_marker(DRS_add_rectangle);  
+</pre>
+   The marker type function is typedef'ed in the class gbuf, which may
+   come in handy in some situations:
+<pre>
+     gbuf::dirty_rectangle_marker tmp_drm;
+
+     //...
+
+     tmp_drm = gs1.get_dirty_rectangle_marker();
+     gs1.set_dirty_rectangle_marker(gs2.get_dirty_rectangle_marker());
+     gs2.set_dirty_rectangle_marker(tmp_drm);
+</pre>
+   Pass the function a null pointer to prevent the gstream from thinking
+   about dirty rectangles, e.g.
+<pre>
+     set_dirty_rectangle_marker(0);  // or perhaps
+     set_dirty_rectangle_marker(NULL);
+</pre>
+   If you don't know what the "dirty" principle is all about: well, it
+   is a screen-updating technique similar to double buffering but where
+   you mark the areas that you have drawn on (which made them dirty),
+   and then later when you need to update the screen only blit these
+   areas (thereby cleaning the,) instead of the whole buffer. I
+   suggest you get your hands on DRS if this has made you curious, since
+   it contains an longer introduction to the principle (and also the 
+   routines to make it work, by the way :-). It can be fetched at
+
+     <link>http://sunsite.dk/olau/drs/</a>
+
+   The default value of the dirty rectangle marker is the null pointer
+   so that the gstream will not bother marking any rectangles.
+
+   Note that only the outputter will mark any rectangles dirty, and not
+   the inputter since it is blocking program anyway, waiting for input,
+   meanwhile preventing the main loop from reaching the place where
+   it updates the rectangles.
+
+@@void @reset();
+   This sets the stream to the default state. All smart tab stops are
+   deleted, the font is set to font 'font', the bitmap is set to screen,
+   etc...
+
+@node overloaded operators for class fix
+@@ostream& @operator&lt&lt(ostream& o, fix const& x);
+@@istream& @operator&gt&gt(istream& i, fix& x);
+@!rtf
+@rtf
+   These two functions don't actually belong to the gstreams, they are
+   here simply because they sometimes make the life a bit easier
+   (without costing anything in executable size if they are left
+   unused). Their purpose is to make the class fix capable of
+   extracting/inserting with the notation
+<pre>
+     fix a_number = 0.3;
+     cout &lt&lt a_number;
+     cin &gt&gt a_number;
+</pre>
+   in conjuction with the standard stream system. And, by the way,
+   consequently also in conjuction with a gstream:
+<pre>
+     gstream gs;
+     gs &lt&lt a_number;
+     gs &gt&gt a_number;
+</pre>
+   You are probably not interested in calling them with their function
+   names, only with the &lt&lt/&gt&gt operators, so this paragraph is
+   written just to make you aware of the possibility of doing that.
+
+
+@heading
+Function collection
+
+To make it easier to use the hook-installing functions in this library,
+there are some premade, ready-to-use functions bundled with the it.
+For example, if you want the user to be able to input numbers only, call
+set_input_approver with ia_allow_integer:
+<pre>
+  gs.save_input_approver();
+  gs.set_input_approver(ia_allow_integer);
+  gs >> my_string;
+  gs.restore_input_approver();
+</pre>
+The function collection is also a good place to start if you want to write
+a routine yourself. I suggest that you copy one of the functions and begin
+by modifying that - much nicer than starting from scratch. They are all
+located in the file gsfunc.cc, which also contains various comments.
+
+@@bool @ia_allow_integer(int c)
+@xref set_input_error_handler, ia_allow_decimal, ia_allow_hexadigits
+   Allows only digits (0123456789) - for inputting numbers.
+
+@@bool @ia_allow_decimal(int c)
+@xref set_input_error_handler, ia_allow_integer, ia_allow_hexadigits
+   Allows only digits and decimal delimiters (0123456789.) - for
+   inputting floats and the like.
+
+@@bool @ia_allow_hexadigits(int c);
+@xref set_input_error_handler, ia_allow_integer, ia_allow_decimal
+   Allows only hexadecimal digits (0123456789abcdefABCDEF) - for
+   inputting hexadecimal numbers.
+
+@@bool @ia_allow_everything(int c);
+@xref set_input_error_handler
+   Always returns true - allows everything.
+
+@@bool @ia_block_spaces(int c);
+@xref set_input_error_handler, ia_allow_word_chars
+   Allows everything but whitespace.
+
+@@bool @ia_allow_word_chars(int c);
+@xref set_input_error_handler, ia_block_spaces
+   Allows characters that can make up a word. Any number and any
+   alphabetic character is allowed. Actually it works by blocking
+   some known non-alphabetic characters, so it ought to work with
+   extended national characters too. Note that '_' also is allowed.
+
+@@void @cd_winconsole(BITMAP *bmp, int x, int y, int w, int h, int clr, bool ins);
+@xref set_cursor_drawer, cd_console
+   Draws a mixture of a win cursor and console cursor: the insert cursor
+   looks like a win cursor (a vertical line: | ), whereas the overwrite
+   cursor is like the console overwrite cursor (it covers the letter).
+
+   The preferred dimensions for this cursor (you have to set them
+   manually) are: (1, gbuf::DYNAMIC_CURSOR_SIZE,
+   gbuf::DYNAMIC_CURSOR_SIZE, gbuf::DYNAMIC_CURSOR_SIZE) but the first
+   argument can be bigger for a broader cursor.
+
+@@void @cd_console(BITMAP *bmp, int x, int y, int w, int h, int clr, bool ins);
+@xref set_cursor_drawer, cd_winconsole
+   Draws a normal console cursor: the insert cursor is like an _, and
+   the overwrite cursor covers the letter.
+
+   The preferred dimensions (you have to set them manually) are:
+   (gbuf::DYNAMIC_CURSOR_SIZE, gbuf::DYNAMIC_CURSOR_SIZE,
+   gbuf::DYNAMIC_CURSOR_SIZE, gbuf::DYNAMIC_CURSOR_SIZE) but the second
+   argument can be set manually to control where the _ will be placed
+   - low values and the cursor will fly above the letters, high values
+   and the cursor will float at the bottom.
+
+@@void @ieh_never_complain(int e);
+@xref set_input_error_handler
+   Nice error handler that covers many situations: it doesn't do
+   anything at all. ;-)
+
+@@void @ieh_led_flasher(int e);
+@xref set_input_error_handler
+   Very fancy handler: it flashes the keyboard LED indicators. How nice. :-)
+
+   You may want to copy it and adjust it to fit your particular situation.
+
+
+@heading
+Manipulators specific to gstream
+
+In case you don't know (or let us say: are not certain about :-) what a
+manipulator is, I'll give a short explanation. Don't worry if you don't
+understand the hairy technical details, they are not at all important
+unless you plan to write your own manipulators in which case you would
+probably have to read a proper description in an iostream
+documentation.
+
+A manipulator is a function that can be called by using the
+extraction/insertion operators in conjuction with a stream. An example:
+<pre>
+  int number = 180;
+  cout &lt&lt number &lt&lt " " &lt&lt hex &lt&lt number;
+</pre>
+This will give the output
+<pre>
+  180 0xB4
+</pre>
+because the part "&lt&lt hex" is actually a call to the function 'hex'
+that manipulates the stream to display the next number with hexadecimal
+digits.  Another very common manipulator that you perhaps know is 'endl'
+which inserts a newline character '\n' into the stream and then flushes
+it:
+<pre>
+  cout &lt&lt "This is the first line," &lt&lt endl &lt&lt "and this is the second.";
+</pre>
+Output:
+<pre>
+  This is the first line,
+  and this is the second.
+</pre>
+The magical function calling is achieved partly by a template class
+system and partly by an operator&gt&gt/operator&lt&lt overload for
+i-/ostream. The overloaded operator functions take a pointer to a
+function; an example prototype is
+<pre>
+  ostream& operator&lt&lt(ostream& (*func)(ostream&));
+</pre>
+All the standard manipulators can of course be used with gstreams, but
+available with this library are also some that are specific to gstreams
+(and consequently only can be used with an instance of such). To use
+them you need to include the header "gmanip"
+<pre>
+  #include &ltgmanip&gt
+</pre>
+or as an alternative you can use the header &ltgmanip.h&gt.
+
+The manipulators that take an argument are called with the argument as a
+normal function. For instance:
+<pre>
+  #include &ltgmanip&gt
+  // ...
+  gstream gs;
+
+  gs &lt&lt "At 0" &lt&lt x(200) &lt&lt "At 200";  // notice x(200)
+</pre>
+Note that another syntax is possible
+<pre>
+  x(gs,200) &lt&lt "At 200"; 
+</pre> 
+but it looks very weird (at least to me) and is harder to read so it
+somewhat defeats the purpose of using the manipulator in the first place. 
+The "&lt&lt "At 200"" in the last example is, by the way, possible 
+because the function 'x' returns a reference to the gstream.
+
+A last thing to note about these manipulators before I begin describing
+them, is that they generally are somewhat slower than calling their
+equivalents in class gstream directly. This is in part due to that they
+cannot be inlined as the overloaded operators need pointers to
+functions. But do not totally ignore them because of this small speed
+penalty! I would consider replacing all
+<pre>
+  gs &lt&lt manipulator
+</pre>
+with
+<pre>
+  gs.set_manipulator
+</pre>
+as an optimization, and one should generally be careful with hand-made
+optimizations. They have their justification when speed really is
+essential, but else think twice before you spend a lot of your time
+making your code hard to read. My advice is that you use the set_*
+functions for maximum speed in places where it is appropriate (e.g. when
+you also have to draw a few dozens of other things on the screen in
+approximately a 1/70 of a second), but else use the manipulators for
+maximum readability.
+
+Well, enough of this ranting. The manipulators of class gstream:
+
+@@void @x(int px);
+@xref goto_x
+   Moves to the x-coordinate PX.
+
+@@void @y(int py);
+@xref goto_y
+   Moves to the y-coordinate PY.
+
+@@void @row(int r);
+@xref goto_row
+   Moves to the given row.
+
+@@void @color(int clr);
+@xref set_color
+   Sets the font to the specified colour.
+
+@@void @tab_size(int ts);
+@xref set_tab_size
+   Sets the standard tabulator size to TS.
+
+@@void @margin(int m);
+@xref set_margin
+   Sets the place where newlines will return to, to M.
+
+@@void @line_spacing(int ls);
+@xref set_line_spacing
+   Sets the line spacing.
+
+@@void @max_input_length(int ml);
+@xref set_max_input_length
+   Sets the maximum number of characters accepted by the inputter upon
+   the next input.
+
+@@void @wrap();
+@xref set_wrap
+   The stream will wrap at the right boundary. Same effect as
+   set_wrap(true).
+
+@@void @no_wrap();
+@xref set_wrap
+   The stream will not wrap. Same effect as set_wrap(false).
+
+@@void @insert();
+@xref set_insert_mode
+   Use insert mode when inputting.
+
+@@void @overwrite();
+@xref set_insert_mode
+   Use overwrite mode when inputting.
+
+
+@heading
+About this library
+
+The following macros can be used if you want to print information about
+the library.
+
+@@char @GSTREAM_VERSION_STR[]
+@xref GSTREAM_DATE_STR, GSTREAM_VERSION, GSTREAM_SUB_VERSION
+   This will contain the current version string of the library. For
+   example, for version 19.34 of the library, this string will be "19.34".
+
+@@char @GSTREAM_DATE_STR[]
+@xref GSTREAM_VERSION_STR, GSTREAM_VERSION, GSTREAM_SUB_VERSION
+   This will contain the year of the current version of the library. For
+   example, for version 1.0 of the library, this string will be
+   "1999".
+
+   (For version 19.43 it will probably be "3061" :-)
+
+@@#define @GSTREAM_VERSION
+@xref GSTREAM_VERSION_STR, GSTREAM_DATE_STR, GSTREAM_SUB_VERSION
+   This macro has the major version number of the library. For example,
+   for version 19.34 of the library, this macro will be 19.
+
+@@#define @GSTREAM_SUB_VERSION
+@xref GSTREAM_VERSION_STR, GSTREAM_DATE_STR, GSTREAM_VERSION
+   This macro has the minor version number of the library. For example,
+   for version 19.34 of the library, this macro will be 34.
+
+@heading
+Legal aspects
+
+For the legal aspects I will simply quote DRS:
+
+This package is gift-ware. This package is given to you freely as a
+gift. You may use, modify, redistribute, and generally hack it about
+in any way you like, and you do not have to give anyone anything in
+return.
+
+I do not accept any responsibility for any effects, adverse or
+otherwise, that this code may have on just about anything that you can
+think of. Use it at your own risk.
+
+This package is written by Ole Laursen.
+
+@heading
+Contact information
+
+Since GStream 1.4 is maintainer of this library Michal Molhanec.
+
+If you find any bugs or problems or things which in your opinion are
+wrong, please do not hesitate to tell me about them. The same applies
+to any other thoughts, comments or suggestions for improvements that
+you may have. Feedback encourages me to spend more time on gstream.
+
+I can easily be contacted at
+<pre>
+  michal@molhanec.net
+</pre>
+
+@heading
+Obtaining the latest version
+
+The latest version of this library should always be available on
+
+<link>http://allegro.molhanec.net/</a>
+
+@!html
+@!text
+@headingnocontent
+Index
+
+@index
+
+@$@contents
+@$@bye
+
+@html
+@text

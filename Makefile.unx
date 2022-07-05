@@ -1,0 +1,141 @@
+## Makefile --- gstream
+#
+# This makefile is from DRS by Michal Bukin,
+# though heavily modified.
+# 
+# Ole Laursen
+
+# you may have to adjust these
+ALLEGROLIB = `allegro-config --libs`
+EXE =
+INSTALL_DATA = install -m 0644
+INSTALL_PROGRAM = install -m 0755
+UNIXPREFIX = /usr
+CXX = c++
+
+# Either copy makedoc from allegro/docs to this directory
+# or change the MAKEDOC line below to your allegro/docs directory
+MAKEDOC = ./makedoc
+
+# example (this may or may not work depending on your shell, though):
+#   MAKEDOC = ../../docs/makedoc
+#   MAKEDOC = $(UNIXPREFIX)/src/allegro/docs/makedoc
+
+
+ifeq ($(wildcard $(MAKEDOC)*),)
+makedocnotinstalled:
+	@echo Missing the makedoc utility from Allegro! Please copy the makedoc executable
+	@echo from allegro/docs to this directory.
+endif
+
+CC = gcc
+WFLAGS = -Wall
+OFLAGS = -mcpu=i486 -O3 -ffast-math -fomit-frame-pointer
+# OFLAGS = -g
+CPPFLAGS = 
+CFLAGS = $(WFLAGS) $(OFLAGS)
+CXXFLAGS = $(WFLAGS) $(OFLAGS)
+INCLUDES = 
+DEFS = 
+LDFLAGS =
+
+LIBS = $(ALLEGROLIB)
+
+AR = ar
+MAKEINFO = makeinfo --no-split
+RM = rm -f
+
+prefix = $(UNIXPREFIX)
+bindir = $(prefix)/bin
+libdir = $(prefix)/lib
+infodir = $(prefix)/info
+includedir = $(prefix)/include
+
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LINK = $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+
+CXX_COMPILE = $(CXX) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CXXFLAGS)
+CXX_LINK = $(CXX) $(CXXFLAGS) $(LDFLAGS) -o $@
+
+LDADD = libgstrm.a
+
+exe_TARGETS = test$(EXE)
+test_exe_OBJECTS = test.o
+test_exe_DEPENDENCIES = libgstrm.a
+test_exe_LDADD = $(LDADD)
+test_exe_LDFLAGS = 
+
+lib_TARGETS = libgstrm.a
+libgstrm_a_OBJECTS = gsintfac.o gsvirtul.o gsmanip.o gswrirea.o gsfunc.o
+libgstrm_a_DEPENDENCIES = 
+libgstrm_a_LIBADD = 
+
+info_TARGETS = gstream.info
+gstream_info_DEPENDENCIES = gstream.txi
+
+targets = $(lib_TARGETS) $(exe_TARGETS)
+info_targets = $(info_TARGETS)
+
+.PHONY: all
+all: $(targets) info
+
+.PHONY: info
+info: $(info_targets)
+
+.PHONY: install
+install: $(lib_TARGETS)
+	$(INSTALL_DATA) libgstrm.a $(libdir)/libgstrm.a
+	$(INSTALL_DATA) gstream.h $(includedir)/gstream.h
+	$(INSTALL_DATA) gstream $(includedir)/gstream
+	$(INSTALL_DATA) gmanip.h $(includedir)/gmanip.h
+	$(INSTALL_DATA) gmanip $(includedir)/gmanip
+
+.PHONY: install-info
+install-info: $(info_targets)
+ifeq ($(wildcard gstream.info),)
+	$(INSTALL_DATA) gstream.inf $(infodir)/gstream.inf
+	install-info gstream.inf $(infodir)/dir
+else
+	$(INSTALL_DATA) gstream.info $(infodir)/gstream.info
+	install-info gstream.info $(infodir)/dir
+endif
+
+%.o: %.c
+	$(COMPILE) -c $<
+
+%.o: %.cc gstream.h
+	$(CXX_COMPILE) -c $<
+
+%.o: %.cpp
+	$(CXX_COMPILE) -c $<
+
+test$(EXE): $(test_exe_OBJECTS) $(test_exe_DEPENDENCIES)
+	$(CXX_LINK) $(test_exe_LDFLAGS) $(test_exe_OBJECTS) $(test_exe_LDADD) $(LIBS)
+
+libgstrm.a: $(libgstrm_a_OBJECTS) $(libgstrm_a_DEPENDENCIES)
+	$(AR) rs $@ $(libgstrm_a_OBJECTS) $(libgstrm_a_LIBADD)
+
+.PHONY: docs
+docs: gstream._tx
+	$(MAKEDOC) gstream._tx
+
+gstream.txi: docs
+
+gstream.info: $(gstream_info_DEPENDENCIES)
+	$(MAKEINFO) gstream.txi
+
+TAGS: *.cc *.h
+	etags *.cc "--language=c++" *.h
+
+.PHONY: tags
+tags: TAGS
+
+.PHONY: clean
+clean:
+	-$(RM) *.o
+
+.PHONY: distclean
+distclean: clean
+	-$(RM) $(targets)
+	-$(RM) $(info_targets)
+	-$(RM) *.ht* gstream.txi gstream.rtf gstream.txt

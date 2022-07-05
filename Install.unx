@@ -1,0 +1,59 @@
+Un*x install instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First you need to get the text files translated to the Unix
+convention. The script "fixunix.sh" should take care of that, try
+running
+
+  sh fixunix.sh
+
+Next you might have to edit the Makefile a bit to make it fit your
+system. I have tried gathering the important variables at the top
+of the file so they should be easy to adapt. In particular, you 
+will probably want to change the UNIXPREFIX.
+
+To be able to make the documentation you should now copy the
+makedoc utility from Allegro (located in allegro/docs) to this
+directory.
+
+After this, run
+
+    make
+
+and then
+
+    make install
+    (you may need root privileges for this command)
+    
+
+By the way, don't write to me just to tell me that the build system is
+too simple (read: dumb), I know that already and I apologize deeply :-)
+
+And that is it! You are now ready to use the gstream library. Simply
+
+  #include <gstream> // or #include <gstream.h> if you prefer that
+
+and maybe
+
+  #include <gmanip>  // if you want to use the manipulators (see gstream.txt)
+
+in your source files and link with "libgstrm.a":
+
+If you're using the commandline compiler, append "-lgstrm" at the end of the
+line, e.g.
+
+  g++ myprog.cc -o myprog `allegro-config --libs` -lgstrm
+
+
+The makefile supports some of the targets that Allegro supports: clean,
+distclean and uninstall. "clean" deletes all object-files,
+"distclean" deletes all generated files (you're back from where you started
+when you unzipped the package) and "uninstall" removes the header files and
+the library file from the standard directories.
+
+So in case you want to uninstall this package (for which obscure reason
+I cannot guess), simply run
+
+  make uninstall
+
+and remove the directory that you installed gstream to.

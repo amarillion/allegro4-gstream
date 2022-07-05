@@ -1,0 +1,38 @@
+MingW32 install instructions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1) Set up your environment so that Mingw32 can be used from the commandline.
+   It means that Mingw32 bin directory (e.g. c:\mingw32\bin) must be on
+   the PATH and MINGDIR variable should point to your Mingw32 directory
+   (e.g. c:\mingw32). As you probably installed Allegro you should know
+   what I mean :-). (As far as you didn't installed it through vUpdate :-) )
+
+2) To be able to make the documentation you should now copy the
+   makedoc utility from Allegro (located in allegro/docs) to this
+   directory
+
+3) run fixmingw.bat
+
+4) run make
+
+5) run make install
+
+6) run test.exe to make sure that everything is ok
+
+And that is it! You are now ready to use the gstream library. Simply
+
+  #include <gstream> // or #include <gstream.h> if you prefer that
+
+and maybe
+
+  #include <gmanip>  // if you want to use the manipulators (see gstream.txt)
+
+in your source files and link with "libgstrm.a":
+
+If you are using Dev-C++ 4.9.xxx go to Project\Project Options\Parametrs tab
+and to Linker edit box add -lgstrm. (Make sure you have there also -lalleg)
+If you're using the commandline compiler, append "-lgstrm" at the end of the
+line, e.g.
+
+  g++ myprog.cc -o myprog.exe -lalleg -lgstrm
+
