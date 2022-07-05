@@ -15,7 +15,7 @@ CXX = c++
 
 CC = gcc
 WFLAGS = -Wall
-OFLAGS = -mcpu=i486 -O3 -ffast-math -fomit-frame-pointer
+OFLAGS = -O3 -ffast-math -fomit-frame-pointer
 # OFLAGS = -g
 CPPFLAGS = 
 CFLAGS = $(WFLAGS) $(OFLAGS)
